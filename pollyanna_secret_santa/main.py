@@ -1,3 +1,4 @@
+import os
 import argparse
 import json
 from pathlib import Path
@@ -33,12 +34,20 @@ def parse_args():
         argparse.Namespace: The parsed arguments.
     """
     parser = argparse.ArgumentParser()
-
+    parser.add_argument(
+        '--gifUrl',
+        type=str,
+        help='A URL to a GIF you want to include at the end of the email.',
+        required=False,
+        default=None
+    )
 
     return parser.parse_args()
 
 
 if __name__ == "__main__":
+    args = parse_args()
+
     parent_path = Path(__file__).parent
     path_to_participatns_json = Path(parent_path, PARTICIPATNS_JSON_RELATIVE_PATH)
 
@@ -62,7 +71,7 @@ if __name__ == "__main__":
     )
 
     # Define the GIF URL and use it in an HTML <img> tag
-    gif_url = "https://media.giphy.com/media/3ofT5EtPNBpIjC8jTy/giphy.gif"
+    gif_url = os.getenv("GIF_URL", args.gifUrl)
 
     # Send out emails
     service = build_gmail_api_service()
