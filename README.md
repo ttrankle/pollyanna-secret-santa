@@ -33,6 +33,7 @@ Run the following command inside the cloned repository:
 ```bash
 pipenv --python 3.10
 pipenv sync
+pipenv shell
 ```
 
 ### 3. Follow the Quickstart Guide to enable Gmail API access.
