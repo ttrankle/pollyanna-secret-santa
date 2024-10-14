@@ -1,0 +1,10 @@
+# The "cahcehd" objects
+**/prior_year_santa_results.json
+## **/participants.json
+
+# The google auth stuff
+**/token.json
+**/credentials.json
+
+# PyCache
+pollyanna_secret_santa/src/__pycache__/
