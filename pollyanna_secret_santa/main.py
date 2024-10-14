@@ -1,4 +1,4 @@
-from typing import Dict
+import argparse
 import json
 from pathlib import Path
 import logging
@@ -23,6 +23,19 @@ logger = logging.getLogger(__name__)
 
 PARTICIPATNS_JSON_RELATIVE_PATH = "resources/participants.json"
 CACHE_FILE_RELATIVE_PATH = "resources/prior_year_santa_results.json"
+
+
+def parse_args():
+    """
+    Parse the command line arguments.
+
+    Returns:
+        argparse.Namespace: The parsed arguments.
+    """
+    parser = argparse.ArgumentParser()
+
+
+    return parser.parse_args()
 
 
 if __name__ == "__main__":

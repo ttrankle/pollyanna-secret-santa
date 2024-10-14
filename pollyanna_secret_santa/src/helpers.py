@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import os
 import base64
+from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from googleapiclient.errors import HttpError
@@ -53,6 +54,7 @@ def gmail_send_messages(service, participants, secret_santa_results, gif_url: st
     Load pre-authorized user credentials from the environment.
     TODO: See https://developers.google.com/identity for guides on implementing OAuth2.
     """
+    the_year = datetime.now().year
     for name, (gift_name, gag_name) in secret_santa_results.items():
         to_email = participants[name]
         try:
@@ -74,8 +76,7 @@ def gmail_send_messages(service, participants, secret_santa_results, gif_url: st
             message.attach(MIMEText(html_content, "html"))
 
             message["To"] = to_email
-            message["From"] = "mclaughlintrankle@gmail.com"
-            message["Subject"] = "SECRET EMAIL for SECRET SANTA! (2024)"
+            message["Subject"] = f"SECRET EMAIL for SECRET SANTA! ({the_year})"
 
             # Encode the message in base64 for Gmail API
             encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
