@@ -231,9 +231,9 @@ def gmail_send_messages(service, participants, secret_santa_results, gif_url: st
             create_message = {"raw": encoded_message}
 
             # Send the email message via the Gmail API
-            # send_message = (
-            #     service.users().messages().send(userId="me", body=create_message).execute()
-            # )
+            send_message = (
+                service.users().messages().send(userId="me", body=create_message).execute()
+            )
 
             logger.info(f'Sent Message Id: {send_message["id"]} to {to_email}')
         except HttpError as error:
