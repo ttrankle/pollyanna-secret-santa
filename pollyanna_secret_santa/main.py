@@ -3,6 +3,7 @@ import argparse
 import json
 from pathlib import Path
 import logging
+from datetime import datetime
 
 from src.secret_santa import generate_secret_santa_results
 from src.helpers import (
@@ -11,8 +12,8 @@ from src.helpers import (
     load_info_from_json,
     load_results_from_cache,
     save_results_to_cache,
+    SantasMemory
 )
-
 from src.auth import build_gmail_api_service
 
 # Set up basic logging configuration
@@ -41,11 +42,27 @@ def parse_args():
         required=False,
         default=None
     )
+    parser.add_argument(
+        '--includeGag',
+        type=bool,
+        help='Whether to include a Gag gift or not. Default is True',
+        required=False,
+        default=True
+    )
+    parser.add_argument(
+        '--exclude_last_n',
+        type=int,
+        help='How many years to not repeat random assignments from',
+        required=False,
+        default=3
+    )
+
 
     return parser.parse_args()
 
 
 if __name__ == "__main__":
+
     args = parse_args()
 
     parent_path = Path(__file__).parent
@@ -65,15 +82,17 @@ if __name__ == "__main__":
     cache_results_path = Path(parent_path, CACHE_FILE_RELATIVE_PATH)
     prior_year_results = load_results_from_cache(cache_results_path)
 
+    santas_memory = SantasMemory(cached_results=prior_year_results, memory_length=args.exclude_last_n)
+
     # Generate Secret Santa results
     secret_santa_results = generate_secret_santa_results(
-        participants, prior_year_results
+        participants, prior_year_results, santas_memory
     )
 
-    # Define the GIF URL and use it in an HTML <img> tag
+    # # Define the GIF URL and use it in an HTML <img> tag
     gif_url = os.getenv("GIF_URL", args.gifUrl)
 
-    # Send out emails
+    # # Send out emails
     service = build_gmail_api_service()
     gmail_send_messages(
         service=service,
@@ -82,9 +101,9 @@ if __name__ == "__main__":
         gif_url=gif_url,
     )
 
-    # Cache the results for future use
+    # # Cache the results for future use
     save_results_to_cache(
-        results=secret_santa_results, cache_file_path=cache_results_path
+        prior_year_results=prior_year_results, results=secret_santa_results, cache_file_path=cache_results_path
     )
 
     clean_up()

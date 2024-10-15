@@ -1,4 +1,7 @@
 
+REGULAR = 'regular'
+GAG = 'gag'
+
 # TODO: update to 3.11 and use StrEnum
 class GoogleAuthConstants:
     CREDENTIALS_JSON = "credentials.json"

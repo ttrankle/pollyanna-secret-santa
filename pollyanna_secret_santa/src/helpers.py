@@ -12,14 +12,56 @@ from googleapiclient.errors import HttpError
 from src.constants import (
     HTML_CONTENT,
     MESSAGE_TEMPLATE,
-    GoogleAuthConstants
+    GoogleAuthConstants,
+    REGULAR,
+    GAG
 )
 
 from logging import getLogger
 
 logger = getLogger(__name__)
 
-def save_results_to_cache(results: Dict, cache_file_path: Path) -> None:
+
+class YearAllocator:
+    
+    YEAR = datetime.now().year
+
+
+class SantasMemory:
+
+    def __init__(self, cached_results: dict, memory_length: int = 3):
+        years_to_load = [str(YearAllocator.YEAR - i) for i in range(1, memory_length + 1)]
+        
+        past_regular_gift_assignments = {}
+        past_gag_gift_assignments = {}
+        
+        for year in years_to_load:
+            years_assignment: dict = cached_results.get(year)
+
+            if years_assignment is not None:
+                regular_assignment = years_assignment.get(REGULAR)
+                for gift_giver in regular_assignment:
+                    gift_receiver = regular_assignment[gift_giver]
+                    past_regular_gift_assignments[gift_giver] = past_regular_gift_assignments.get(gift_giver, set())
+                    past_regular_gift_assignments[gift_giver].add(gift_receiver)
+
+                gag_assignment = years_assignment.get(GAG, [])
+                for gift_giver in gag_assignment:
+                    gift_receiver = gag_assignment[gift_giver]
+                    past_gag_gift_assignments[gift_giver] = past_gag_gift_assignments.get(gift_giver, set())
+                    past_gag_gift_assignments[gift_giver].add(gift_receiver)
+
+        self.past_regular_gift_assignments = past_regular_gift_assignments
+        self.past_gag_gift_assignments = past_gag_gift_assignments
+
+    def get_past_regular_gift_recievers(self, participants_name: str) -> set:
+        return self.past_regular_gift_assignments.get(participants_name, set())
+
+    def get_past_gag_gift_recievers(self, participants_name: str) -> set:
+        return self.past_gag_gift_assignments.get(participants_name, set())
+
+
+def save_results_to_cache(prior_year_results: Dict, results: Dict, cache_file_path: Path) -> None:
     """
     Save the results dictionary to a JSON file.
 
@@ -37,8 +79,10 @@ def save_results_to_cache(results: Dict, cache_file_path: Path) -> None:
         results = {"status": "success", "data": [1, 2, 3]}
         save_results_to_cache(results, Path("/path/to/cache.json"))
     """
+    prior_year_results[YearAllocator.YEAR] = results
+
     with open(cache_file_path, 'w') as file:
-        json.dump(results, file)
+        json.dump(prior_year_results, file, indent=4)
 
 
 def load_results_from_cache(cache_file_path: Path) -> Dict:
@@ -187,9 +231,9 @@ def gmail_send_messages(service, participants, secret_santa_results, gif_url: st
             create_message = {"raw": encoded_message}
 
             # Send the email message via the Gmail API
-            send_message = (
-                service.users().messages().send(userId="me", body=create_message).execute()
-            )
+            # send_message = (
+            #     service.users().messages().send(userId="me", body=create_message).execute()
+            # )
 
             logger.info(f'Sent Message Id: {send_message["id"]} to {to_email}')
         except HttpError as error:
